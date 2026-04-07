@@ -1,10 +1,13 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import {
   ReactFlow,
   Background,
   Controls,
+  ReactFlowProvider,
+  useReactFlow,
+  MarkerType,
   type Node,
   type Edge,
 } from "@xyflow/react";
@@ -31,7 +34,8 @@ interface Props {
  * - Nodes and edges are computationally styled based on standard simulation semantics 
  *   (e.g., circular wait participants highlight in red).
  */
-export default function ResourceAllocationGraph({
+function ResourceAllocationGraphInner({
+
   nodes,
   edges,
   deadlock,
@@ -41,6 +45,14 @@ export default function ResourceAllocationGraph({
     () => new Set(deadlockCycle.map((pid) => `P${pid}`)),
     [deadlockCycle]
   );
+  
+  const { fitView } = useReactFlow();
+  
+  useEffect(() => {
+    setTimeout(() => {
+      fitView({ padding: 0.3, duration: 400 });
+    }, 50);
+  }, [nodes.length, fitView]);
 
   const styledNodes = useMemo<Node[]>(() => {
     let pIdx = 0;
@@ -101,6 +113,11 @@ export default function ResourceAllocationGraph({
       return {
         ...e,
         animated: inCycle,
+        type: "smoothstep",
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          color: inCycle ? "#ef4444" : isAllocation ? "#3b82f6" : "#f59e0b",
+        },
         style: {
           stroke: inCycle ? "#ef4444" : isAllocation ? "#3b82f6" : "#f59e0b",
           strokeWidth: 2,
@@ -130,5 +147,13 @@ export default function ResourceAllocationGraph({
         />
       </ReactFlow>
     </div>
+  );
+}
+
+export default function ResourceAllocationGraph(props: Props) {
+  return (
+    <ReactFlowProvider>
+      <ResourceAllocationGraphInner {...props} />
+    </ReactFlowProvider>
   );
 }

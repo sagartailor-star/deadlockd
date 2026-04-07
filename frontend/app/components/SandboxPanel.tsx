@@ -13,6 +13,7 @@ export default function SandboxPanel({ sendManualRequest, snapshot }: Props) {
   const [pid, setPid] = useState(0);
   const [rid, setRid] = useState(0);
   const [qty, setQty] = useState(1);
+  const [feedback, setFeedback] = useState("");
 
   const maxPid = snapshot ? snapshot.allocation.length - 1 : 0;
   const maxRid = snapshot ? snapshot.available.length - 1 : 0;
@@ -23,6 +24,8 @@ export default function SandboxPanel({ sendManualRequest, snapshot }: Props) {
     if (!valid) return;
     sendManualRequest(pid, rid, qty);
     setQty(1);
+    setFeedback("Request Submitted!");
+    setTimeout(() => setFeedback(""), 2000);
   };
 
   return (
@@ -77,11 +80,11 @@ export default function SandboxPanel({ sendManualRequest, snapshot }: Props) {
 
       <button
         onClick={handleSubmit}
-        disabled={!valid}
+        disabled={!valid || !!feedback}
         className="flex items-center justify-center gap-2 px-3 py-2 bg-violet-600/20 hover:bg-violet-600/30 text-violet-400 rounded-lg border border-violet-600/30 transition-colors text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed"
       >
         <Send className="w-3.5 h-3.5" />
-        Request Resource
+        {feedback || "Request Resource"}
       </button>
     </div>
   );

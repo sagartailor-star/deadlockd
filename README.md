@@ -76,7 +76,9 @@ sequenceDiagram
 
 ### Live Simulation Recording
 > Explore the 60fps unthrottled WebSockets pushing delta-graph variations.
-> [Watch Full Demo Video](docs/demo/deadlockd-demo.webm) *(Raw WebM format)*
+>
+> <video src="docs/demo/deadlockd-demo.webm" width="100%" controls autoplay loop muted></video>
+> *(Make sure to click Play if it doesn't autoplay! Default playback demonstrates simulated circular wait graphs)*
 
 ---
 

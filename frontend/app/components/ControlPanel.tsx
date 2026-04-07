@@ -33,6 +33,7 @@ export default function ControlPanel({
 }: Props) {
   const [ticks, setTicks] = useState(10);
   const [selectedScenario, setSelectedScenario] = useState<string>(SCENARIOS[0]);
+  const [simRunning, setSimRunning] = useState(false);
 
   const handleTickChange = (val: number) => {
     setTicks(val);
@@ -63,14 +64,26 @@ export default function ControlPanel({
 
       <div className="flex flex-col gap-2 sm:flex-row">
         <button
-          onClick={() => sendCommand("START_SIM")}
-          className="flex flex-1 items-center justify-center gap-2 px-3 py-2.5 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 rounded-lg border border-emerald-600/30 transition-colors text-sm font-medium"
+          onClick={() => {
+            sendCommand("START_SIM");
+            setSimRunning(true);
+          }}
+          className="relative flex flex-1 items-center justify-center gap-2 px-3 py-2.5 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 rounded-lg border border-emerald-600/30 transition-colors text-sm font-medium"
         >
+          {simRunning && (
+            <span className="absolute top-2 right-2 flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+          )}
           <Play className="w-4 h-4" />
           Start
         </button>
         <button
-          onClick={() => sendCommand("STOP_SIM")}
+          onClick={() => {
+            sendCommand("STOP_SIM");
+            setSimRunning(false);
+          }}
           className="flex flex-1 items-center justify-center gap-2 px-3 py-2.5 bg-red-600/20 hover:bg-red-600/30 text-red-400 rounded-lg border border-red-600/30 transition-colors text-sm font-medium"
         >
           <Square className="w-4 h-4" />

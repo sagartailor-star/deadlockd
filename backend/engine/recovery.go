@@ -7,6 +7,7 @@ func (s *SystemState) TerminateProcess(pid int) {
 		s.Available[j] += s.Allocation[pid][j]
 		s.Allocation[pid][j] = 0
 		s.Need[pid][j] = 0
+		s.Max[pid][j] = 0
 	}
 	s.Processes[pid].Status = "Terminated"
 	s.Mu.Unlock()

@@ -22,11 +22,13 @@ func (s *SystemState) GenerateGraphSnapshot() ([]Node, []Edge) {
 
 	alloc := make([][]int, np)
 	need := make([][]int, np)
+	statuses := make([]string, np)
 	for i := 0; i < np; i++ {
 		alloc[i] = make([]int, nr)
 		need[i] = make([]int, nr)
 		copy(alloc[i], s.Allocation[i])
 		copy(need[i], s.Need[i])
+		statuses[i] = s.Processes[i].Status
 	}
 	s.Mu.Unlock()
 
@@ -34,6 +36,9 @@ func (s *SystemState) GenerateGraphSnapshot() ([]Node, []Edge) {
 	edges := make([]Edge, 0, np*nr)
 
 	for i := 0; i < np; i++ {
+		if statuses[i] == "Terminated" {
+			continue
+		}
 		nodes = append(nodes, Node{
 			ID:    fmt.Sprintf("P%d", i),
 			Type:  "process",
