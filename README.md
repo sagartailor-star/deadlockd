@@ -3,6 +3,10 @@
   <br/>
   <h1>⛓️ deadlockd ⛓️</h1>
   <p><strong>A high-performance Deadlock Simulation Toolkit and Concurrency Visualizer</strong></p>
+  <p>
+    <a href="https://deadlockd-six.vercel.app"><strong>🚀 Live Demo</strong></a> •
+    <a href="https://github.com/sagartailor-star/deadlockd"><strong>📦 Source Code</strong></a>
+  </p>
 </div>
 
 
