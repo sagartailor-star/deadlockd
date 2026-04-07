@@ -1,5 +1,16 @@
 package engine
 
+// IsSafeState evaluates if a safe sequence exists for the current simulation state,
+// effectively proving that all processes could eventually terminate without deadlock.
+//
+// Algorithm implementation adheres directly to Banker's Algorithm criteria:
+// 1. A simulated 'work' vector resolves potential free resources.
+// 2. Iteratively searches for processes capable of executing (Need <= Work).
+// 3. Claims the allocated resources back.
+//
+// Complexity:
+// - Time Complexity: O(P^2 * R), where P is number of processes and R is the number of resources.
+// - Space Complexity: O(P * R) transient space to prevent mutating core state.
 func IsSafeState(state *SystemState) (bool, []int) {
 	state.Mu.Lock()
 	np := len(state.Processes)

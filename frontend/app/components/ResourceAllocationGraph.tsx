@@ -10,13 +10,27 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
+/**
+ * Props defines the data contract for rendering the Resource Allocation Graph (RAG).
+ * The simulation engine guarantees consistent edge-node parity on each tick.
+ */
 interface Props {
-  nodes: Node[];
-  edges: Edge[];
-  deadlock: boolean;
-  deadlockCycle: number[];
+  nodes: Node[];            // Array of entities (Processes and Resources)
+  edges: Edge[];            // Directed vectors representing Allocation or Intent (Need)
+  deadlock: boolean;        // High-level system deadlock status flag
+  deadlockCycle: number[];  // Array of Process IDs currently trapped in a circular dependency
 }
 
+/**
+ * ResourceAllocationGraph (RAG) is a highly optimized client-side rendering component 
+ * utilizing @xyflow/react to visualize system deadlocks and allocations.
+ * 
+ * Performance characteristics:
+ * - Uses `useMemo` hooks heavily to prevent expensive re-calculations of layout and styles
+ *   during high-frequency WebSocket coordinate updates.
+ * - Nodes and edges are computationally styled based on standard simulation semantics 
+ *   (e.g., circular wait participants highlight in red).
+ */
 export default function ResourceAllocationGraph({
   nodes,
   edges,

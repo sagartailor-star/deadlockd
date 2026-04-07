@@ -2,25 +2,38 @@ package engine
 
 import "sync"
 
+// Process represents an individual execution unit in the simulation.
+// It maps the internal ID to an existential state ("Ready", "Terminated").
 type Process struct {
 	ID     int
 	Status string
 }
 
+// Resource represents an allocatable system entity.
+// It maintains the absolute upper bound of instances available system-wide.
 type Resource struct {
 	ID             int
 	TotalInstances int
 }
 
+// SystemState encapsulates the entire runtime state of the DeadlockD simulator.
+// It holds the core matrices required for executing Banker's Algorithm and the Deadlock Detection Algorithm.
+//
+// Thread Safety:
+// Due to the highly concurrent nature of the simulation (where goroutines continually dispatch requests),
+// all mutating matrix and vector operations MUST acquire the `Mu` mutex.
+// Starvation and unbounded access duration are mitigated via strict, short-lived critical sections
+// across the simulation tick bounds constraint.
 type SystemState struct {
 	Processes  []Process
 	Resources  []Resource
-	Available  []int
-	Max        [][]int
-	Allocation [][]int
-	Need       [][]int
-	Mu         sync.Mutex
+	Available  []int     // Vector: Number of currently available instances for each resource
+	Max        [][]int   // Matrix: Maximum potential claim per process per resource
+	Allocation [][]int   // Matrix: Currently held instances per process per resource
+	Need       [][]int   // Matrix: Remaining required instances per process per resource (Max - Allocation)
+	Mu         sync.Mutex // Protects concurrent mutative access across state slices
 }
+
 
 func InitializeSystem(numProcesses int, numResources int) *SystemState {
 	processes := make([]Process, numProcesses)

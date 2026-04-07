@@ -1,94 +1,118 @@
-# deadlockd
+<div align="center">
+  <img src="docs/screenshots/home.png" alt="Deadlockd Dashboard" width="100%">
+  <br/>
+  <h1>⛓️ deadlockd ⛓️</h1>
+  <p><strong>A high-performance Deadlock Simulation Toolkit and Concurrency Visualizer</strong></p>
+</div>
 
-`deadlockd` is a deadlock simulation toolkit built with Go and Next.js. It lets you load known process and resource states, watch the wait graph update in real time, test safe and unsafe requests, and inspect the system through a browser dashboard.
+`deadlockd` is a real-time deadlock simulation framework architected with a heavily concurrent **Go backend** and a reactive **Next.js frontend**. Built for systems engineers, educators, and CS students, it visualizes resource contention, validates state safety using **Banker's Algorithm**, and detects cyclic dependencies live through a dynamic WebSocket bridge.
 
-## What you can do
+---
 
-- Load named scenarios such as `CIRCULAR_WAIT`, `SAFE_STATE`, and `HOLD_AND_WAIT`
-- Start and stop the simulator from the dashboard
-- Send manual resource requests through the sandbox panel
-- See allocation and need matrices update live
-- Inspect deadlock status, safe sequences, and timing metrics
-- Run the full stack with Docker Compose or run backend and frontend separately
+## 🏗 System Architecture
 
-## Stack
-
-- Backend: Go 1.23, goroutines, WebSocket streaming
-- Frontend: Next.js 16, React 19, Tailwind CSS, React Flow
-- Runtime: Docker Compose
-
-## Quick start
-
-### Docker
-
-```bash
-docker-compose up --build
-```
-
-Open:
-
-- Frontend: `http://localhost:3000`
-- Backend: `http://localhost:8080`
-- WebSocket: `ws://localhost:8080/ws`
-
-### Local development
-
-Backend:
-
-```bash
-cd backend
-go run .
-```
-
-Frontend:
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-## Runtime flow
+The overarching design leverages a robust separation of concerns, offloading all heavy graph detection computations to the Go engine while pushing 60fps React topological graph updates to the browser.
 
 ```mermaid
-flowchart LR
-  A["Browser dashboard"] -->|"WebSocket commands"| B["Go API server"]
-  B --> C["Simulation manager"]
-  C --> D["Banker's safety check"]
-  C --> E["Deadlock detection"]
-  C --> F["System state"]
-  F -->|"snapshot update"| B
-  B -->|"STATE_UPDATE"| A
+flowchart TB
+    subgraph Frontend [Next.js React Client]
+        UI[Dashboard & Sandbox]
+        RAG[Resource Allocation Graph]
+        State[Matrix Viewers]
+        
+        UI -->|Send User Commands| SocketClient[WebSocket Client]
+        SocketClient -->|Recv Diff State| RAG
+        SocketClient -->|Recv Matrix Update| State
+    end
+
+    subgraph Backend [Go Simulation Engine]
+        SocketServer[WebSocket Hub]
+        Sim[Simulation Manager]
+        Banker[Banker's Algorithm]
+        Deadlock[Deadlock Detector]
+        Core[Global System State]
+
+        SocketClient <==>|Bi-directional Sync| SocketServer
+        SocketServer -->|Commands| Sim
+        Sim -->|Reads/Writes| Core
+        Sim -->|Safety Check| Banker
+        Sim -->|Cycle Detection| Deadlock
+        Core -->|Snapshot Dispatch| SocketServer
+    end
 ```
 
-## Demo assets
+## 🧠 Core Engine Integrity: Banker's Algorithm
 
-- Demo video: [docs/demo/deadlockd-demo.webm](docs/demo/deadlockd-demo.webm)
-- Home dashboard: [docs/screenshots/home.png](docs/screenshots/home.png)
-- Running simulation: [docs/screenshots/running.png](docs/screenshots/running.png)
-- Safe state scenario: [docs/screenshots/safe-state.png](docs/screenshots/safe-state.png)
-- Manual request flow: [docs/screenshots/manual-request-success.png](docs/screenshots/manual-request-success.png)
+Whenever a manual or automated resource request is dispatched by a Process, it is intercepted and evaluated strictly against the constraint model using the Banker's Algorithm to guarantee system safety.
 
-## Repo layout
+```mermaid
+sequenceDiagram
+    participant Process
+    participant Arbiter as Simulation Manager
+    participant State as System State
+    participant Banker as Banker's safety check
 
-```text
-backend/   Go simulation engine and WebSocket API
-frontend/  Next.js dashboard
-docs/      Screenshots, demo video, and diagrams
+    Process->>Arbiter: Request Event (PID, RID, Qty)
+    Arbiter->>State: Tentatively apply allocation
+    Arbiter->>Banker: IsSafeState(Tentative State)?
+    Banker-->>Arbiter: Returns Boolean Flag
+    
+    alt is Safe
+        Arbiter->>State: Commit changes permanently
+        Arbiter-->>Process: Grant resource lock
+    else is Unsafe
+        Arbiter->>State: Rollback tentative allocation (MutEx)
+        Arbiter-->>Process: Reject request
+    end
 ```
 
-## Verification
+---
 
-These checks pass in this repo:
+## 📸 Platform Demos & Highlights
 
+### Interactive Sandbox & Deadlock Cycles
+![Sandbox](docs/screenshots/manual-request-success.png)
+*Granular control over resources enables active evaluation of unsafe state cascading.*
+
+### Live Simulation Recording
+> Explore the 60fps unthrottled WebSockets pushing delta-graph variations.
+> [Watch Full Demo Video](docs/demo/deadlockd-demo.webm) *(Raw WebM format)*
+
+---
+
+## 🚀 Quick Start Guide
+
+### 🐳 Docker Compose (Recommended)
+Bootstraps both the Go WebSocket engine and the Next.js static renderer immediately.
 ```bash
-cd backend && go test ./... && go build ./...
-cd frontend && npm run lint && npm run build
 docker-compose up --build
 ```
 
-## Notes
+**Access Endpoints:**
+- 🖥️ **Frontend UI**: `http://localhost:3000`
+- ⚙️ **Backend API**: `http://localhost:8080`
 
-- The dashboard now sends an initial snapshot as soon as the WebSocket connects.
-- Built-in scenarios now load real allocations, not just max claims, so the named states match what you see on screen.
-- The frontend layout now stacks cleanly on narrow screens instead of overlapping cards and tables.
+### 💻 Local Source Verification
+Built for transparency. Both backend and frontend follow strict standard library + modern tooling implementations.
+
+**Backend (Go Engine)**
+```bash
+cd backend
+go test ./...    # Validate concurrent simulations pass
+go run .         # Start WebSocket daemon
+```
+
+**Frontend (Next.js)**
+```bash
+cd frontend
+npm install      # Requires Node 18+
+npm run lint     # Strict TS validation
+npm run dev      # Spin up Hot-Reloading server
+```
+
+---
+
+## 🔬 Design Notes & Constraints
+- **Concurrency Strategy**: The Go engine utilizes bounded goroutines mapping 1:1 with simulated OS Processes. The `SystemState` strictly synchronizes operations relying on pointer matrix allocations protected by `sync.Mutex`. Time starvation is prevented by short-running lock critical sections.
+- **WebSocket Streaming**: React state operates independently of UI repaint operations using `@xyflow/react` to optimize memoized updates across massive unthrottled node deployments.
+

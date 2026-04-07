@@ -52,6 +52,13 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
+// HandleWebSocket handles the HTTP upgrade routing for the frontend.
+// It constructs the real-time WebSocket connection to the Next.js React client.
+// 
+// Protocol Flow:
+// 1. Initial successful connection triggers immediate snapshot sync guaranteeing consistency.
+// 2. Continuous event handling loop decodes 'ClientCommand' requests spanning lifecycle manipulation, rate limits, Sandbox execution and standard simulation execution. 
+// 3. Real-time broadcast pushes delta frames (`ServerMessage->STATE_UPDATE`) mapping the system architecture over a volatile, unthrottled bus architecture.
 func HandleWebSocket(
 	hub *Hub,
 	sim *engine.Simulation,

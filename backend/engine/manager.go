@@ -30,16 +30,26 @@ type RequestEvent struct {
 	ReplyChan  chan bool
 }
 
+// Simulation encapsulates the execution context for concurrent processes competing for system resources.
+// It actively manages the process lifecycle, dispatch events via channels, and bounds tick executions.
+// 
+// Architecture Strategy:
+// High-grade separation of concerns is maintained where the `Simulation` acts as a scheduler/arbitrator,
+// and individual processes run as completely isolated goroutines utilizing buffered channels for communication.
+// 
+// Lifecycle constraints:
+// To ensure a clean teardown, it utilizes a `context.Context` pattern and a `sync.WaitGroup` to orchestrate 
+// the parallel shutdown operations of active goroutines, preventing memory/goroutine leaks.
 type Simulation struct {
 	State            *SystemState
-	IncomingRequests chan RequestEvent
-	ManualRequests   chan RequestEvent
+	IncomingRequests chan RequestEvent // Pipeline processing automated requests
+	ManualRequests   chan RequestEvent // Pipeline parsing external (user/system) commands
 	ctx              context.Context
 	cancel           context.CancelFunc
 	tickInterval     atomic.Int64
 	running          atomic.Bool
 	wg               sync.WaitGroup
-	onStateChange    func()
+	onStateChange    func()            // Asynchronous callback fired on guaranteed state deltas
 	metrics          Metrics
 }
 
