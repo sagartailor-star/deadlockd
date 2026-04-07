@@ -5,6 +5,9 @@
   <p><strong>A high-performance Deadlock Simulation Toolkit and Concurrency Visualizer</strong></p>
 </div>
 
+
+[Live Demo](https://deadlockd.vercel.app)
+
 `deadlockd` is a real-time deadlock simulation framework architected with a heavily concurrent **Go backend** and a reactive **Next.js frontend**. Built for systems engineers, educators, and CS students, it visualizes resource contention, validates state safety using **Banker's Algorithm**, and detects cyclic dependencies live through a dynamic WebSocket bridge.
 
 ---
